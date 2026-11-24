@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>STROKAI — Phase 1 MVP</title>
+  <style>
+    :root {
+      --bg: #0b0f17;
+      --card: #131a26;
+      --card-2: #192232;
+      --text: #e6edf7;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --green: #22c55e;
+      --red: #ef4444;
+      --amber: #f59e0b;
+      --border: #263246;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      padding: 16px;
+      line-height: 1.45;
+    }
+
+    .app {
+      max-width: 920px;
+      margin: 0 auto;
+    }
+
+    header {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    h1 {
+      font-size: 1.25rem;
+      letter-spacing: 0.4px;
+    }
+
+    .sub {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-top: 2px;
+    }
+
+    .badge {
+      background: rgba(245, 158, 11, 0.14);
+      color: var(--amber);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .tab-btn {
+      background: var(--card);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 10px;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .tab-btn.active {
+      background: var(--accent);
+      color: #061018;
+      border-color: var(--accent);
+    }
+
+    .panel {
+      display: none;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    .section-title {
+      font-size: 1rem;
+      margin-bottom: 10px;
+    }
+
+    .grid-form {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--card-2);
+      color: var(--text);
+      font-size: 0.92rem;
+    }
+
+    button.primary {
+      background: var(--accent);
+      color: #061018;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+    }
+
+    button.danger {
+      background: rgba(239, 68, 68, 0.16);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      padding: 6px 10px;
+      width: auto;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .stat {
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+    }
+
+    .stat-label {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .stat-val {
+      font-size: 1.08rem;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    .pos {
+      color: var(--green);
+    }
+
+    .neg {
+      color: var(--red);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 10px 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    .empty {
+      color: var(--muted);
+      font-size: 0.88rem;
+      padding: 10px 0;
+    }
+
+    .notice {
+      background: var(--card-2);
+      border-left: 3px solid var(--amber);
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div>
+        <h1>STROKAI</h1>
+        <div class="sub">Phase 1 MVP • Local Storage Mode (No Live Market Feed)</div>
+      </div>
+      <div id="apiStatusBadge" class="badge">DATA FEED: NOT CONFIGURED</div>
+    </header>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="watchlist">Watchlist</button>
+      <button class="tab-btn" data-tab="portfolio">Portfolio</button>
+      <button class="tab-btn" data-tab="paper">Paper Trade</button>
+    </div>
+
+    <!-- WATCHLIST -->
+    <section id="watchlist" class="panel active">
+      <h2 class="section-title">Watchlist</h2>
+      <form id="watchForm" class="grid-form">
+        <input type="text" id="watchSymbol" placeholder="Symbol (e.g. RELIANCE, TCS)" required />
+        <input type="number" step="0.01" id="watchNotePrice" placeholder="Reference Price (₹)" />
+        <button type="submit" class="primary">Add Symbol</button>
+      </form>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Symbol</th>
+              <th>Ref Price (₹)</th>
+              <th>Feed</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="watchBody"></tbody>
+        </table>
+      </div>
+      <div class="notice">
+        Prices here are manually entered reference values only. Live market data is <strong>NOT CONFIGURED</strong> in Phase 1.
+      </div>
+    </section>
+
+    <!-- PORTFOLIO -->
+    <section id="portfolio" class="panel">
+      <h2 class="section-title">Manual Portfolio (₹)</h2>
+      <div class="summary-grid">
+        <div class="stat">
+          <div class="stat-label">Total Invested</div>
+          <div id="pfInvested" class="stat-val">₹0.00</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Current Value (Manual)</div>
+          <div id="pfCurrent" class="stat-val">₹0.00</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Unrealized P&L (₹)</div>
+          <div id="pfPnl" class="stat-val">₹0.00</div>
+        </div>
+      </div>
+
+      <form id="pfForm" class="grid-form">
+        <input type="text" id="pfSymbol" placeholder="Symbol (e.g. INFY)" required />
+        <input type="number" step="0.01" id="pfQty" placeholder="Qty" required />
+        <input type="number" step="0.01" id="pfBuy" placeholder="Avg Buy Price (₹)" required />
+        <input type="number" step="0.01" id="pfLtp" placeholder="Manual Price (₹)" required />
+        <button type="submit" class="primary">Save Holding</button>
+      </form>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Symbol</th>
+              <th>Qty</th>
+              <th>Buy (₹)</th>
+              <th>Manual ₹</th>
+              <th>P&L (₹)</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="pfBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- PAPER TRADE -->
+    <section id="paper" class="panel">
+      <h2 class="section-title">Paper Trading Simulator (Practice Only)</h2>
+      <div class="summary-grid">
+        <div class="stat">
+          <div class="stat-label">Virtual Cash (₹)</div>
+          <div id="paperCash" class="stat-val">₹1,00,000.00</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Total Paper Orders</div>
+          <div id="paperCount" class="stat-val">0</div>
+        </div>
+      </div>
+
+      <form id="paperForm" class="grid-form">
+        <input type="text" id="paperSymbol" placeholder="Symbol (e.g. HDFCBANK)" required />
+        <select id="paperSide">
+          <option value="BUY">BUY</option>
+          <option value="SELL">SELL</option>
+        </select>
+        <input type="number" step="1" min="1" id="paperQty" placeholder="Qty" required />
+        <input type="number" step="0.01" min="0.01" id="paperPrice" placeholder="Price (₹)" required />
+        <button type="submit" class="primary">Log Paper Order</button>
+      </form>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Side</th>
+              <th>Symbol</th>
+              <th>Qty</th>
+              <th>Price (₹)</th>
+              <th>Total (₹)</th>
+            </tr>
+          </thead>
+          <tbody id="paperBody"></tbody>
+        </table>
+      </div>
+      <div class="notice">
+        Simulated entries only—not connected to any broker or exchange. Never enter real broker passwords or OTPs.
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const STORAGE_KEYS = {
+      watch: "strokai_p1_watch_v1",
+      pf: "strokai_p1_pf_v1",
+      paper: "strokai_p1_paper_v1"
+    };
+
+    const fmtINR = (num) =>
+      "₹" + Number(num || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    const load = (key, fallback) => {
+      try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      } catch {
+        return fallback;
+      }
+    };
+
+    const save = (key, val) => {
+      try {
+        localStorage.setItem(key, JSON.stringify(val));
+      } catch {}
+    };
+
+    // Tabs
+    document.querySelectorAll(".tab-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+        document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
+        btn.classList.add("active");
+        document.getElementById(btn.dataset.tab).classList.add("active");
+      });
+    });
+
+    // Watchlist state
+    let watchlist = load(STORAGE_KEYS.watch, []);
+
+    function renderWatchlist() {
+      const body = document.getElementById("watchBody");
+      if (!watchlist.length) {
+        body.innerHTML = `<tr><td colspan="4" class="empty">No symbols added yet.</td></tr>`;
+        return;
+      }
+      body.innerHTML = watchlist
+        .map(
+          (item, idx) => `
+          <tr>
+            <td><strong>${item.symbol}</strong></td>
+            <td>${item.refPrice ? fmtINR(item.refPrice) : "—"}</td>
+            <td><span class="badge">NOT CONFIGURED</span></td>
+            <td><button class="danger" onclick="removeWatch(${idx})">Remove</button></td>
+          </tr>`
+        )
+        .join("");
+    }
+
+    window.removeWatch = (idx) => {
+      watchlist.splice(idx, 1);
+      save(STORAGE_KEYS.watch, watchlist);
+      renderWatchlist();
+    };
+
+    document.getElementById("watchForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const symbol = document.getElementById("watchSymbol").value.trim().toUpperCase();
+      const refPrice = parseFloat(document.getElementById("watchNotePrice").value) || null;
+      if (!symbol) return;
+      watchlist.unshift({ symbol, refPrice });
+      save(STORAGE_KEYS.watch, watchlist);
+      renderWatchlist();
+      e.target.reset();
+    });
+
+    // Portfolio state
+    let portfolio = load(STORAGE_KEYS.pf, []);
+
+    function renderPortfolio() {
+      const body = document.getElementById("pfBody");
+      let totalInv = 0;
+      let totalCur = 0;
+
+      if (!portfolio.length) {
+        body.innerHTML = `<tr><td colspan="6" class="empty">No holdings saved yet.</td></tr>`;
+      } else {
+        body.innerHTML = portfolio
+          .map((row, idx) => {
+            const inv = row.qty * row.buy;
+            const cur = row.qty * row.ltp;
+            const pnl = cur - inv;
+            totalInv += inv;
+            totalCur += cur;
+            const cls = pnl >= 0 ? "pos" : "neg";
+            return `
+              <tr>
+                <td><strong>${row.symbol}</strong></td>
+                <td>${row.qty}</td>
+                <td>${fmtINR(row.buy)}</td>
+                <td>${fmtINR(row.ltp)}</td>
+                <td class="${cls}">${pnl >= 0 ? "+" : ""}${fmtINR(pnl)}</td>
+                <td><button class="danger" onclick="removePf(${idx})">Delete</button></td>
+              </tr>`;
+          })
+          .join("");
+      }
+
+      const totalPnl = totalCur - totalInv;
+      document.getElementById("pfInvested").textContent = fmtINR(totalInv);
+      document.getElementById("pfCurrent").textContent = fmtINR(totalCur);
+      const pnlEl = document.getElementById("pfPnl");
+      pnlEl.textContent = (totalPnl >= 0 ? "+" : "") + fmtINR(totalPnl);
+      pnlEl.className = "stat-val " + (totalPnl >= 0 ? "pos" : "neg");
+    }
+
+    window.removePf = (idx) => {
+      portfolio.splice(idx, 1);
+      save(STORAGE_KEYS.pf, portfolio);
+      renderPortfolio();
+    };
+
+    document.getElementById("pfForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const symbol = document.getElementById("pfSymbol").value.trim().toUpperCase();
+      const qty = parseFloat(document.getElementById("pfQty").value);
+      const buy = parseFloat(document.getElementById("pfBuy").value);
+      const ltp = parseFloat(document.getElementById("pfLtp").value);
+      if (!symbol || qty <= 0 || buy <= 0 || ltp <= 0) return;
+      portfolio.push({ symbol, qty, buy, ltp });
+      save(STORAGE_KEYS.pf, portfolio);
+      renderPortfolio();
+      e.target.reset();
+    });
+
+    // Paper trade state
+    let paperState = load(STORAGE_KEYS.paper, { cash: 100000, orders: [] });
+
+    function renderPaper() {
+      document.getElementById("paperCash").textContent = fmtINR(paperState.cash);
+      document.getElementById("paperCount").textContent = String(paperState.orders.length);
+      const body = document.getElementById("paperBody");
+
+      if (!paperState.orders.length) {
+        body.innerHTML = `<tr><td colspan="6" class="empty">No simulated orders yet.</td></tr>`;
+        return;
+      }
+
+      body.innerHTML = paperState.orders
+        .map(
+          (o) => `
+          <tr>
+            <td>${o.time}</td>
+            <td class="${o.side === "BUY" ? "pos" : "neg"}"><strong>${o.side}</strong></td>
+            <td><strong>${o.symbol}</strong></td>
+            <td>${o.qty}</td>
+            <td>${fmtINR(o.price)}</td>
+            <td>${fmtINR(o.total)}</td>
+          </tr>`
+        )
+        .join("");
+    }
+
+    document.getElementById("paperForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const symbol = document.getElementById("paperSymbol").value.trim().toUpperCase();
+      const side = document.getElementById("paperSide").value;
+      const qty = parseFloat(document.getElementById("paperQty").value);
+      const price = parseFloat(document.getElementById("paperPrice").value);
+      if (!symbol || qty <= 0 || price <= 0) return;
+
+      const total = qty * price;
+      if (side === "BUY") {
+        if (total > paperState.cash) {
+          alert("Virtual cash kam hai is paper BUY order ke liye.");
+          return;
+        }
+        paperState.cash -= total;
+      } else {
+        paperState.cash += total;
+      }
+
+      const time = new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
+      paperState.orders.unshift({ time, side, symbol, qty, price, total });
+      save(STORAGE_KEYS.paper, paperState);
+      renderPaper();
+      e.target.reset();
+    });
+
+    renderWatchlist();
+    renderPortfolio();
+    renderPaper();
+  </script>
+</body>
+</html>
